@@ -417,7 +417,7 @@ def extract_edges(X_train, X_test, lower=50, upper=150):
     return edge_train_data, edge_test_data
 
 
-def reshape_data(X_train, y_train, X_test, y_test):
+def reshape_data(X_train, y_train, X_test, y_test, savepath):
     w = X_train.shape[1]  # image width
     h = X_train.shape[2]  # image height
 
@@ -435,14 +435,12 @@ def reshape_data(X_train, y_train, X_test, y_test):
     test_shape = [mts, w, h, d]
     # reshape data to use in VGG model and feature extraction
     X_train = X_train.reshape(train_shape)
-    print(X_train.shape)
     X_test = X_test.reshape(test_shape)
-    print(X_test.shape)
     # convert train labels to one-hot vectors
     y_train = OHE(y_train)
     # save test non one-hot labels to csv to use later in accuracy comparing
     y_test_df = pd.DataFrame(data=y_test, columns=['target'])
-    y_test_df.to_csv('./results/mnist_test.csv', index=False)
+    y_test_df.to_csv(str(savepath) + 'mnist_test.csv', index=False)
     # convert train labels to one-hot vectors
     y_test = OHE(y_test)
 

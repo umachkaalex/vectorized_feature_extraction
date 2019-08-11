@@ -22,7 +22,7 @@ class PrepareData:
         # internals
         self.all_files = 0
         self.X = []
-        self.Y: np.asarray([])
+        self.Y = np.array
         self.datasets = {}
         self.classes = {}
         self.img_shapes = {}

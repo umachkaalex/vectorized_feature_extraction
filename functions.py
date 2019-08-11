@@ -234,7 +234,7 @@ def extract_features(data, idx):
     return new_data, idx
 
 
-def MiniVGGNet(dataset, epochs):
+def MiniVGGNet(dataset, epochs, verb):
     # define number of classes
     n_cls = dataset['y_train'].shape[1]
     # clear session
@@ -242,7 +242,7 @@ def MiniVGGNet(dataset, epochs):
     # collect history
     history = History()
     # save weights with best val accuracy
-    checkpoint = ModelCheckpoint('weights.hdf5', monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+    checkpoint = ModelCheckpoint('weights.hdf5', monitor='val_acc', verbose=verb, save_best_only=True, mode='max')
     callbacks_list = [checkpoint, history]
     # start building model
     model = Sequential()
@@ -287,13 +287,13 @@ def MiniVGGNet(dataset, epochs):
     # train model
     model.fit(dataset['X_train'], dataset['y_train'],
               validation_data=[dataset['X_test'], dataset['y_test']],
-              epochs=epochs, batch_size=64, verbose=2, callbacks=callbacks_list)
+              epochs=epochs, batch_size=64, verbose=verb, callbacks=callbacks_list)
 
     return model, history
 
 
-def train_predict(dataset, savepath, name, epochs=100):
-    trained, cur_history = MiniVGGNet(dataset, epochs)
+def train_predict(dataset, savepath, name, verb=2, epochs=100):
+    trained, cur_history = MiniVGGNet(dataset, epochs, verb)
     trained.load_weights('weights.hdf5')
     y_pred = trained.predict(dataset['X_test'])
     cur_pred_df = pd.DataFrame(data=y_pred)
@@ -343,8 +343,8 @@ def extr_feat(dataset):
 
 
 def reshape_as_orig(feat_train, feat_test, dataset):
-    train_shape = dataset['train_shape']
-    test_shape = dataset['test_shape']
+    train_shape = dataset['train_shape'].copy()
+    test_shape = dataset['test_shape'].copy()
     w = train_shape[1]
     h = train_shape[2]
     train_shape[-1] = 1
@@ -355,9 +355,9 @@ def reshape_as_orig(feat_train, feat_test, dataset):
     # can be totally "placed into" image shape
     dupl_num = w * h // feat_shape[1]
     # define the amount of zero columns on the left side
-    start_zeros = (w * h - dupl_num*feat_shape[1]) // 2
+    start_zeros = (w * h % feat_shape[1]) // 2
     # define the amount of zero columns on the right side
-    end_zeros = (w * h - dupl_num*feat_shape[1] - start_zeros)
+    end_zeros = w * h % feat_shape[1] - start_zeros
     # open new feature array with the same shape as original img array
     X_train_feat = np.zeros([feat_train.shape[0], start_zeros])
     # concatenate to starting zero features - extracted ones

@@ -256,7 +256,7 @@ def MiniVGGNet(dataset, epochs, verb):
     model.add(BatchNormalization(axis=-1))
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.25, seed=0))
 
     # second convolutional layer
     model.add(Conv2D(64, (3, 3), padding="same"))
@@ -268,14 +268,14 @@ def MiniVGGNet(dataset, epochs, verb):
     model.add(BatchNormalization(axis=-1))
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.25, seed=0))
 
     # fully connected layer
     model.add(Flatten())
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.5, seed=0))
 
     # soft classifier
     model.add(Dense(n_cls))

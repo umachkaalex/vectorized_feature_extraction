@@ -417,6 +417,8 @@ def extract_edges(X_train, X_test, lower=50, upper=150):
 
 
 def extract_corners(X_train, X_test):
+    mtr = X_train.shape[0]
+    mts = X_test.shape[0]
     w = X_train.shape[1]
     h = X_train.shape[2]
     d = X_train.shape[3]
@@ -450,6 +452,9 @@ def extract_corners(X_train, X_test):
         # Threshold for an optimal value, it may vary depending on the image.
         corners_img[dst > 0.01 * dst.max()] = [255]
         corners_test_data[i, :] = corners_img.flatten()
+
+    corners_train_data = corners_train_data.reshape(mtr, w, h, 1)
+    corners_test_data = corners_test_data.reshape(mts, w, h, 1)
 
     return corners_train_data, corners_test_data
 

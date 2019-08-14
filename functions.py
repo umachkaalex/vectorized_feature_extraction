@@ -1,10 +1,9 @@
 import cv2
-import keras.backend as K
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 import pandas as pd
+import numpy as np
 
+from keras import backend as K
 from keras.models import Sequential
 from keras.optimizers import SGD
 from keras.callbacks import History, ModelCheckpoint
@@ -256,7 +255,7 @@ def MiniVGGNet(dataset, epochs, verb):
     model.add(BatchNormalization(axis=-1))
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25, seed=0))
+    model.add(Dropout(0.25))
 
     # second convolutional layer
     model.add(Conv2D(64, (3, 3), padding="same"))
@@ -268,14 +267,14 @@ def MiniVGGNet(dataset, epochs, verb):
     model.add(BatchNormalization(axis=-1))
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25, seed=0))
+    model.add(Dropout(0.25))
 
     # fully connected layer
     model.add(Flatten())
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5, seed=0))
+    model.add(Dropout(0.5))
 
     # soft classifier
     model.add(Dense(n_cls))
@@ -415,6 +414,44 @@ def extract_edges(X_train, X_test, lower=50, upper=150):
     edge_test_data = edge_test_data.reshape(mts, w, h, 1)
 
     return edge_train_data, edge_test_data
+
+
+def extract_corners(X_train, X_test):
+    w = X_train.shape[1]
+    h = X_train.shape[2]
+    d = X_train.shape[3]
+
+    corners_train_data = np.zeros([len(X_train), w * h])
+    for i in tqdm(range(X_train.shape[0])):
+        corners_img = np.zeros([1, w * h]).reshape([w, h])
+        if d > 1:
+            img = cv2.cvtColor(X_train[i, :, :, :], cv2.COLOR_BGR2GRAY)
+        else:
+            img = X_train[i, :, :, :]
+        gray = np.float32(img)
+        dst = cv2.cornerHarris(gray, 2, 3, 0.04)
+        # result is dilated for marking the corners, not important
+        dst = cv2.dilate(dst, None)
+        # Threshold for an optimal value, it may vary depending on the image.
+        corners_img[dst > 0.01 * dst.max()] = [255]
+        corners_train_data[i, :] = corners_img.flatten()
+
+    corners_test_data = np.zeros([len(X_test), w * h])
+    for i in tqdm(range(X_test.shape[0])):
+        corners_img = np.zeros([1, w * h]).reshape([w, h])
+        if d > 1:
+            img = cv2.cvtColor(X_test[i, :, :, :], cv2.COLOR_BGR2GRAY)
+        else:
+            img = X_test[i, :, :, :]
+        gray = np.float32(img)
+        dst = cv2.cornerHarris(gray, 2, 3, 0.04)
+        # result is dilated for marking the corners, not important
+        dst = cv2.dilate(dst, None)
+        # Threshold for an optimal value, it may vary depending on the image.
+        corners_img[dst > 0.01 * dst.max()] = [255]
+        corners_test_data[i, :] = corners_img.flatten()
+
+    return corners_train_data, corners_test_data
 
 
 def reshape_data(X_train, y_train, X_test, y_test, savepath):
